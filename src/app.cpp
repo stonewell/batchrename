@@ -6,7 +6,7 @@ IMPLEMENT_APP(BatchRenameApp)
 bool BatchRenameApp::OnInit()
 {
 
-    MainDialog * mainDlg = new MainDialog(wxT("Batch Rename File Name"));
+    MainDialog * mainDlg = new MainDialog(wxT("Batch Rename Files"));
     mainDlg->Show(true);
 
     return true;
