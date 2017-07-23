@@ -8,14 +8,14 @@ MainDialog::MainDialog(const wxString & title)
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
     wxSizerFlags szDefaultFlags(0);
-    szDefaultFlags.Expand().Center().Border(wxTOP|wxLEFT|wxRIGHT, 5);
+    szDefaultFlags.Expand().Border(wxTOP, 5);
     wxSizerFlags szBottomFlags(0);
-    szBottomFlags.Expand().Center().Border(wxALL, 5);
+    szBottomFlags.Expand().Border(wxTOP|wxBOTTOM, 5);
 
     //folder name
     wxStaticBoxSizer *sz = new wxStaticBoxSizer(wxVERTICAL,
                                                 this,
-                                                wxT(""));
+                                                wxT("Folder for batch renaming"));
 
     wxBoxSizer *hboxFolder = new wxBoxSizer(wxHORIZONTAL);
     m_tcFolder = new wxTextCtrl(sz->GetStaticBox(), wxID_ANY, wxT(""));
@@ -23,14 +23,9 @@ MainDialog::MainDialog(const wxString & title)
     wxButton *folderButton = new wxButton(sz->GetStaticBox(), ID_BTN_BROWSE, wxT("Browse"));
 
     hboxFolder->Add(m_tcFolder,
-                    wxSizerFlags(1).Expand().Border(wxBOTTOM | wxTOP | wxRIGHT, 5));
-    hboxFolder->Add(folderButton,
-                    wxSizerFlags(0)
-                    .Center().Right()
-                    .Border(wxBOTTOM | wxTOP, 5));
+                    wxSizerFlags(1).Expand().Border(wxBOTTOM | wxTOP, 5));
+    hboxFolder->Add(folderButton, szBottomFlags);
 
-    sz->Add(new wxStaticText(sz->GetStaticBox(), wxID_ANY, wxT("Choose folder for batch renaming")),
-            szDefaultFlags);
     sz->Add(hboxFolder, szDefaultFlags);
 
     m_cbIncludeSubDir = new wxCheckBox(sz->GetStaticBox(), wxID_ANY, wxT("including sub directories"));
@@ -39,16 +34,16 @@ MainDialog::MainDialog(const wxString & title)
     //match method
     wxStaticBoxSizer *sz2 = new wxStaticBoxSizer(wxVERTICAL,
                                                  this,
-                                                 wxT(""));
+                                                 wxT("File name matching/replacing method"));
 
     m_rbWildcards = new wxRadioButton(sz2->GetStaticBox(), wxID_ANY,
                                       wxT("Use Wildcard"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 
     m_rbRegex = new wxRadioButton(sz2->GetStaticBox(), wxID_ANY,
-                                  wxT("Use Regexp"), wxDefaultPosition);
+                                  wxT("Use Regexp"));
 
-    sz2->Add(new wxStaticText(sz2->GetStaticBox(), wxID_ANY, wxT("Choose file name matching/replacing method")),
-             szDefaultFlags);
+    m_rbWildcards->SetValue(true);
+
     sz2->Add(m_rbWildcards, szDefaultFlags);
     sz2->Add(m_rbRegex, szDefaultFlags);
     sz2->Add(new wxStaticText(sz2->GetStaticBox(), wxID_ANY, wxT("Source file pattern")),
@@ -58,16 +53,14 @@ MainDialog::MainDialog(const wxString & title)
     sz2->Add(m_tcSourcePattern, szDefaultFlags);
 
     sz2->Add(new wxStaticText(sz2->GetStaticBox(), wxID_ANY, wxT("Target file pattern")),
-             szDefaultFlags);
+             szBottomFlags);
 
     m_tcTargetPattern = new wxTextCtrl(sz2->GetStaticBox(), wxID_ANY, wxT("*"));
     sz2->Add(m_tcTargetPattern, szBottomFlags);
 
     wxStaticBoxSizer *sz3 = new wxStaticBoxSizer(wxVERTICAL,
                                                  this,
-                                                 wxT(""));
-    sz3->Add(new wxStaticText(sz3->GetStaticBox(), wxID_ANY, wxT("File rename preview")),
-             szDefaultFlags);
+                                                 wxT("File rename preview"));
 
     wxListCtrl * m_lcPreview = new wxListCtrl(sz3->GetStaticBox(), wxID_ANY,
                                               wxDefaultPosition, wxDefaultSize,
@@ -92,9 +85,12 @@ MainDialog::MainDialog(const wxString & title)
     hbox->Add(new wxButton(this, wxID_REPLACE, wxT("Go Rename")),
               wxSizerFlags(1).Center());
 
-    vbox->Add(sz, szDefaultFlags);
-    vbox->Add(sz2, szDefaultFlags);
-    vbox->Add(sz3, szDefaultFlags);
+    wxSizerFlags flags(szDefaultFlags);
+    flags.Border(wxALL, 5);
+
+    vbox->Add(sz, flags);
+    vbox->Add(sz2, flags);
+    vbox->Add(sz3, flags);
     vbox->Add(hbox, wxSizerFlags(1).Center());
 
     SetSizer(vbox);
@@ -107,6 +103,7 @@ MainDialog::MainDialog(const wxString & title)
     Connect(wxEVT_BUTTON, wxCommandEventHandler(MainDialog::OnButtonClick));
 
     Centre();
+
     ShowModal();
 
     Destroy();
@@ -119,6 +116,7 @@ void MainDialog::OnUpdatePreview(wxCommandEvent & event)
                   m_rbWildcards->GetValue(),
                   m_tcSourcePattern->GetValue(),
                   m_tcTargetPattern->GetValue());
+
 }
 
 void MainDialog::OnButtonClick(wxCommandEvent & event)

@@ -49,3 +49,8 @@ ltmain.sh
 missing
 .deps
 batchrename
+
+DerivedData
+build
+COPYING
+INSTALL
