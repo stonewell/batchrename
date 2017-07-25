@@ -1,4 +1,8 @@
 #include "main_dlg.h"
+#include "dir_scanner.h"
+#include "filename_matcher.h"
+
+#include <wx/busyinfo.h>
 
 #include <iostream>
 
@@ -62,7 +66,7 @@ MainDialog::MainDialog(const wxString & title)
                                                  this,
                                                  wxT("File rename preview"));
 
-    wxListCtrl * m_lcPreview = new wxListCtrl(sz3->GetStaticBox(), wxID_ANY,
+    m_lcPreview = new wxListCtrl(sz3->GetStaticBox(), wxID_ANY,
                                               wxDefaultPosition, wxDefaultSize,
                                               wxLC_REPORT | wxLC_VIRTUAL);
 
@@ -141,6 +145,19 @@ void MainDialog::UpdatePreview(const wxString & folder,
                                bool includeSubDir,
                                bool useWildcard,
                                const wxString & srcPattern,
-                               const wxString & targeParttern)
+                               const wxString & dstPattern)
 {
+    wxWindowDisabler disableAll;
+    wxBusyInfo wait(wxT("Please wait, scanning directory..."));
+
+    m_FilepathMap.clear();
+
+    FilenameMatcher matcher(useWildcard,
+                            srcPattern, dstPattern,
+                            m_FilepathMap);
+
+    if (!matcher.Init())
+        return;
+
+    scan_dir(folder, matcher, includeSubDir);
 }

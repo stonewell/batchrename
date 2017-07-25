@@ -1,0 +1,117 @@
+#include "filename_matcher.h"
+
+#include <iostream>
+
+FilenameMatcher::FilenameMatcher(bool useWildcard,
+                                 const wxString & srcPattern,
+                                 const wxString & dstPattern,
+                                 StringHashMap & filepathMap) :
+    m_UseWildcard(useWildcard)
+    , m_SrcPattern(srcPattern)
+    , m_DstPattern(dstPattern)
+    , m_FilepathMap(filepathMap)
+{
+}
+
+FilenameMatcher::~FilenameMatcher()
+{
+}
+
+bool FilenameMatcher::Init()
+{
+    wxString srcRegex(m_SrcPattern), dstRegex(m_DstPattern);
+
+    if (m_UseWildcard)
+    {
+        if (!GenRegexFromWildcard(srcRegex, dstRegex))
+            return false;
+    }
+
+    std::cout << "src:" << srcRegex.utf8_str() << ", dst:" << dstRegex.utf8_str() << std::endl;
+
+    if (!m_FilepathMatcher.Compile(srcRegex))
+    {
+        return false;
+    }
+
+    m_DstRegex = dstRegex;
+
+    return true;
+}
+
+void FilenameMatcher::MatchFile(const wxString & filepath)
+{
+    if (m_FilepathMatcher.Matches(filepath))
+    {
+        wxString dstPath(filepath);
+
+        if (m_FilepathMatcher.Replace(&dstPath, m_DstRegex) == 1)
+        {
+            m_FilepathMap[filepath] = dstPath;
+
+            std::cout << "src:" << filepath.utf8_str() << ", dst:" << dstPath.utf8_str() << std::endl;
+        }
+    }
+}
+
+bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
+                                           wxString & dstRegex)
+{
+    int src_any_count = 0, dst_any_count = 0;
+    int src_single_count = 0, dst_single_count = 0;
+    wxArrayInt any_match_index, single_match_index;
+    int match_index = 0;
+
+    srcRegex = wxT("");
+    dstRegex = wxT("");
+
+    srcRegex << wxT("^");
+    for(int i=0; i < m_SrcPattern.length(); i++)
+    {
+        if (m_SrcPattern[i] == '*')
+        {
+            src_any_count++;
+            match_index++;
+            any_match_index.Add(match_index);
+            srcRegex << ("(.*)");
+        }
+        else if (m_SrcPattern[i] == '?')
+        {
+            src_single_count++;
+            match_index++;
+            single_match_index.Add(match_index);
+            srcRegex.append("(.)");
+        }
+        else
+        {
+            srcRegex.append(m_SrcPattern[i]);
+        }
+    }
+    srcRegex << wxT("$");
+
+    for(int i=0; i < m_DstPattern.length(); i++)
+    {
+        if (m_DstPattern[i] == '*')
+        {
+            if (dst_any_count >= any_match_index.GetCount())
+                return false;
+
+            dstRegex.append("\\") << (any_match_index[dst_any_count]);
+            dst_any_count++;
+        }
+        else if (m_DstPattern[i] == '?')
+        {
+            if (dst_single_count >= single_match_index.GetCount())
+                return false;
+
+            dstRegex.append("\\") << (single_match_index[dst_single_count]);
+            dst_single_count++;
+        }
+        else
+        {
+            dstRegex.append(m_DstPattern[i]);
+        }
+    }
+
+    return true;
+}
