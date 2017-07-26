@@ -18,9 +18,10 @@ public:
         }
 
 public:
-    void SetFilenameArray(FilenamePairArray * pFilepathArray);
+    void SetFilenameArray(const wxString & srcFolder, FilenamePairArray * pFilepathArray);
 private:
     FilenamePairArray * m_pFilepathArray;
+    wxString m_SrcFolder;
 
     virtual wxString OnGetItemText(long item, long column) const wxOVERRIDE;
 

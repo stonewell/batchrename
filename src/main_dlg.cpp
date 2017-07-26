@@ -162,5 +162,5 @@ void MainDialog::UpdatePreview(const wxString & folder,
 
     scan_dir(folder, matcher, includeSubDir);
 
-    m_lcPreview->SetFilenameArray(&m_FilepathArray);
+    m_lcPreview->SetFilenameArray(folder, &m_FilepathArray);
 }
