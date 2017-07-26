@@ -4,21 +4,26 @@
 #include "wx/hashmap.h"
 #include "wx/regex.h"
 
-WX_DECLARE_STRING_HASH_MAP(wxString, StringHashMap);
+typedef struct __filename_pair {
+    wxString src_path;
+    wxString dst_path;
+} filename_pair;
+
+WX_DECLARE_OBJARRAY(filename_pair, FilenamePairArray);
 
 class FilenameMatcher {
 public:
     FilenameMatcher(bool useWildcard,
                     const wxString & srcPattern,
                     const wxString & dstPattern,
-                    StringHashMap & filepathMap);
+                    FilenamePairArray & filepathMap);
     ~FilenameMatcher();
 
 private:
     bool m_UseWildcard;
     wxString m_SrcPattern;
     wxString m_DstPattern;
-    StringHashMap & m_FilepathMap;
+    FilenamePairArray & m_FilepathMap;
     wxRegEx m_FilepathMatcher;
     wxString m_DstRegex;
 

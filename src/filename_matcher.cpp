@@ -2,10 +2,13 @@
 
 #include <iostream>
 
+#include <wx/arrimpl.cpp>
+WX_DEFINE_OBJARRAY(FilenamePairArray);
+
 FilenameMatcher::FilenameMatcher(bool useWildcard,
                                  const wxString & srcPattern,
                                  const wxString & dstPattern,
-                                 StringHashMap & filepathMap) :
+                                 FilenamePairArray & filepathMap) :
     m_UseWildcard(useWildcard)
     , m_SrcPattern(srcPattern)
     , m_DstPattern(dstPattern)
@@ -47,7 +50,9 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
 
         if (m_FilepathMatcher.Replace(&dstPath, m_DstRegex) == 1)
         {
-            m_FilepathMap[filepath] = dstPath;
+            filename_pair pair = {filepath, dstPath};
+
+            m_FilepathMap.Add(pair);
 
             std::cout << "src:" << filepath.utf8_str() << ", dst:" << dstPath.utf8_str() << std::endl;
         }
@@ -57,8 +62,8 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
 bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
                                            wxString & dstRegex)
 {
-    int src_any_count = 0, dst_any_count = 0;
-    int src_single_count = 0, dst_single_count = 0;
+    int dst_any_count = 0;
+    int dst_single_count = 0;
     wxArrayInt any_match_index, single_match_index;
     int match_index = 0;
 
@@ -70,14 +75,12 @@ bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
     {
         if (m_SrcPattern[i] == '*')
         {
-            src_any_count++;
             match_index++;
             any_match_index.Add(match_index);
             srcRegex << ("(.*)");
         }
         else if (m_SrcPattern[i] == '?')
         {
-            src_single_count++;
             match_index++;
             single_match_index.Add(match_index);
             srcRegex.append("(.)");

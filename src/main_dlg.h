@@ -5,6 +5,8 @@
 
 #include "filename_matcher.h"
 
+class PreviewListCtrl;
+
 class MainDialog : public wxDialog
 {
 public:
@@ -25,9 +27,9 @@ private:
     wxRadioButton * m_rbWildcards;
     wxRadioButton * m_rbRegex;
 
-    wxListCtrl * m_lcPreview;
+    PreviewListCtrl * m_lcPreview;
 
-    StringHashMap m_FilepathMap;
+    FilenamePairArray m_FilepathArray;
 
     void OnUpdatePreview(wxCommandEvent & event);
     void OnButtonClick(wxCommandEvent & event);

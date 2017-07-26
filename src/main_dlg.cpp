@@ -1,6 +1,7 @@
 #include "main_dlg.h"
 #include "dir_scanner.h"
 #include "filename_matcher.h"
+#include "preview_listctrl.h"
 
 #include <wx/busyinfo.h>
 
@@ -66,7 +67,7 @@ MainDialog::MainDialog(const wxString & title)
                                                  this,
                                                  wxT("File rename preview"));
 
-    m_lcPreview = new wxListCtrl(sz3->GetStaticBox(), wxID_ANY,
+    m_lcPreview = new PreviewListCtrl(sz3->GetStaticBox(), wxID_ANY,
                                               wxDefaultPosition, wxDefaultSize,
                                               wxLC_REPORT | wxLC_VIRTUAL);
 
@@ -150,14 +151,16 @@ void MainDialog::UpdatePreview(const wxString & folder,
     wxWindowDisabler disableAll;
     wxBusyInfo wait(wxT("Please wait, scanning directory..."));
 
-    m_FilepathMap.clear();
+    m_FilepathArray.Clear();
 
     FilenameMatcher matcher(useWildcard,
                             srcPattern, dstPattern,
-                            m_FilepathMap);
+                            m_FilepathArray);
 
     if (!matcher.Init())
         return;
 
     scan_dir(folder, matcher, includeSubDir);
+
+    m_lcPreview->SetFilenameArray(&m_FilepathArray);
 }
