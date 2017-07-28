@@ -85,6 +85,14 @@ bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
             single_match_index.Add(match_index);
             srcRegex.append("(.)");
         }
+        else if (m_SrcPattern[i] == '(')
+        {
+            srcRegex.append("\\(");
+        }
+        else if (m_SrcPattern[i] == ')')
+        {
+            srcRegex.append("\\)");
+        }
         else
         {
             srcRegex.append(m_SrcPattern[i]);

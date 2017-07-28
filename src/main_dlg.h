@@ -16,6 +16,7 @@ private:
     enum
     {
         ID_BTN_BROWSE = wxID_HIGHEST + 1,
+        ID_BTN_PREVIEW,
     };
 
     wxTextCtrl * m_tcFolder;
@@ -29,14 +30,19 @@ private:
 
     PreviewListCtrl * m_lcPreview;
 
+    wxLogWindow * m_LogWin;
+
     FilenamePairArray m_FilepathArray;
 
     void OnUpdatePreview(wxCommandEvent & event);
     void OnButtonClick(wxCommandEvent & event);
+    void OnWindowMove(wxMoveEvent & event);
 
     void UpdatePreview(const wxString & folder,
                        bool includeSubDir,
                        bool useWildcard,
                        const wxString & srcPattern,
                        const wxString & targeParttern);
+
+    void UpdateLogWindow();
 };

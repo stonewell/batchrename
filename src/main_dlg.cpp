@@ -9,6 +9,7 @@
 
 MainDialog::MainDialog(const wxString & title)
     : wxDialog(NULL, -1, title, wxDefaultPosition, wxSize(800, 600))
+    , m_LogWin(new wxLogWindow(NULL, "Messages", false, false))
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
@@ -87,6 +88,8 @@ MainDialog::MainDialog(const wxString & title)
 
     wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 
+    hbox->Add(new wxButton(this, ID_BTN_PREVIEW, wxT("Preview Rename")),
+              wxSizerFlags(1).Center());
     hbox->Add(new wxButton(this, wxID_REPLACE, wxT("Go Rename")),
               wxSizerFlags(1).Center());
 
@@ -101,13 +104,16 @@ MainDialog::MainDialog(const wxString & title)
     SetSizer(vbox);
 
     //Connect to Events
-    Connect(wxEVT_TEXT, wxCommandEventHandler(MainDialog::OnUpdatePreview));
-    Connect(wxEVT_CHECKBOX, wxCommandEventHandler(MainDialog::OnUpdatePreview));
-    Connect(wxEVT_RADIOBUTTON, wxCommandEventHandler(MainDialog::OnUpdatePreview));
+    // Connect(wxEVT_TEXT, wxCommandEventHandler(MainDialog::OnUpdatePreview));
+    // Connect(wxEVT_CHECKBOX, wxCommandEventHandler(MainDialog::OnUpdatePreview));
+    // Connect(wxEVT_RADIOBUTTON, wxCommandEventHandler(MainDialog::OnUpdatePreview));
 
     Connect(wxEVT_BUTTON, wxCommandEventHandler(MainDialog::OnButtonClick));
-
+    Connect(wxEVT_MOVE, wxMoveEventHandler(MainDialog::OnWindowMove));
     Centre();
+
+    //Log Window
+    wxLog::SetActiveTarget(m_LogWin);
 
     ShowModal();
 
@@ -140,6 +146,14 @@ void MainDialog::OnButtonClick(wxCommandEvent & event)
             m_tcFolder->SetValue(dlg.GetPath());
         }
     }
+    else if (btn->GetId() == ID_BTN_PREVIEW)
+    {
+        UpdatePreview(m_tcFolder->GetValue(),
+                      m_cbIncludeSubDir->GetValue(),
+                      m_rbWildcards->GetValue(),
+                      m_tcSourcePattern->GetValue(),
+                      m_tcTargetPattern->GetValue());
+    }
 }
 
 void MainDialog::UpdatePreview(const wxString & folder,
@@ -163,4 +177,26 @@ void MainDialog::UpdatePreview(const wxString & folder,
     scan_dir(folder, matcher, includeSubDir);
 
     m_lcPreview->SetFilenameArray(folder, &m_FilepathArray);
+}
+
+void MainDialog::OnWindowMove(wxMoveEvent & event)
+{
+    UpdateLogWindow();
+}
+
+void MainDialog::UpdateLogWindow()
+{
+    if (!m_LogWin)
+        return;
+
+    wxRect rc = this->GetScreenRect();
+    m_LogWin->GetFrame()->Move(rc.GetLeft() + rc.GetWidth(), rc.GetTop());
+
+    if ( m_LogWin->GetFrame()->IsIconized() )
+        m_LogWin->GetFrame()->Restore();
+
+    if ( ! m_LogWin->GetFrame()->IsShown() )
+        m_LogWin->Show();
+
+    m_LogWin->GetFrame()->SetFocus();
 }
