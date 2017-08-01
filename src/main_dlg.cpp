@@ -114,6 +114,7 @@ MainDialog::MainDialog(const wxString & title)
 
     //Log Window
     wxLog::SetActiveTarget(m_LogWin);
+    wxLog::SetLogLevel(wxLOG_Info);
 
     ShowModal();
 
@@ -177,7 +178,8 @@ void MainDialog::UpdatePreview(const wxString & folder,
 
     m_FilepathArray.Clear();
 
-    FilenameMatcher matcher(useWildcard,
+    FilenameMatcher matcher(folder,
+                            useWildcard,
                             srcPattern, dstPattern,
                             m_FilepathArray);
 

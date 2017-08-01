@@ -13,7 +13,8 @@ WX_DECLARE_OBJARRAY(filename_pair, FilenamePairArray);
 
 class FilenameMatcher {
 public:
-    FilenameMatcher(bool useWildcard,
+    FilenameMatcher(const wxString & baseFolder,
+                    bool useWildcard,
                     const wxString & srcPattern,
                     const wxString & dstPattern,
                     FilenamePairArray & filepathMap);
@@ -24,6 +25,7 @@ private:
     wxString m_SrcPattern;
     wxString m_DstPattern;
     FilenamePairArray & m_FilepathMap;
+    wxString m_BaseFolder;
     wxRegEx m_FilepathMatcher;
     wxString m_DstRegex;
 

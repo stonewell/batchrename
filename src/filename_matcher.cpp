@@ -6,7 +6,8 @@
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(FilenamePairArray);
 
-FilenameMatcher::FilenameMatcher(bool useWildcard,
+FilenameMatcher::FilenameMatcher(const wxString & baseFolder,
+                                 bool useWildcard,
                                  const wxString & srcPattern,
                                  const wxString & dstPattern,
                                  FilenamePairArray & filepathMap) :
@@ -14,6 +15,7 @@ FilenameMatcher::FilenameMatcher(bool useWildcard,
     , m_SrcPattern(srcPattern)
     , m_DstPattern(dstPattern)
     , m_FilepathMap(filepathMap)
+    , m_BaseFolder(baseFolder)
 {
 }
 
@@ -31,10 +33,10 @@ bool FilenameMatcher::Init()
             return false;
     }
 
-    std::cout << "src:" << srcRegex.utf8_str() << ", dst:" << dstRegex.utf8_str() << std::endl;
-
     if (!m_FilepathMatcher.Compile(srcRegex))
     {
+        wxLogError(wxT("Invalid source patter:%s"), m_SrcPattern.utf8_str());
+
         return false;
     }
 
@@ -54,15 +56,17 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
     {
         wxString dstPath(filename);
 
-        if (m_FilepathMatcher.Replace(&dstPath, m_DstRegex) == 1)
+        if (m_FilepathMatcher.Replace(&dstPath, m_DstRegex) >= 1)
         {
             wxFileName dstFn(fn);
+            wxFileName tmpDst( wxFileName::FileName(dstPath));
 
-            std::cout << "dst dir:" << wxFileName::FileName(dstPath).GetPath().utf8_str()
-                      << ", dst file:" << wxFileName::FileName(dstPath).GetFullName().utf8_str()
+            std::cout << "dst dir:" << tmpDst.GetPath().utf8_str()
+                      << ", dst file:" << tmpDst.GetFullName().utf8_str()
                       << std::endl;
 
-            dstFn.AppendDir(wxFileName::FileName(dstPath).GetPath());
+            if (tmpDst.GetDirCount() > 0)
+                dstFn.AppendDir(wxFileName::FileName(dstPath).GetPath());
             dstFn.SetFullName(wxFileName::FileName(dstPath).GetFullName());
 
             dstPath = dstFn.GetFullPath();
@@ -74,12 +78,17 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
             std::cout << "src:" << filepath.utf8_str() << ", dst:" << dstPath.utf8_str() << std::endl;
         }
     }
+    else
+    {
+        fn.MakeRelativeTo(m_BaseFolder);
+        wxLogMessage(wxT("File:%s 's name is not matching source pattern."), fn.GetFullPath().utf8_str());
+    }
 }
 
 static
 const
 char escape_chars[] = {
-    '(', ')', '.'
+    '(', ')', '.', '\\'
 };
 
 bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
