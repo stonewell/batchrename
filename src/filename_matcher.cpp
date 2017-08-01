@@ -1,4 +1,5 @@
 #include "filename_matcher.h"
+#include "wx/filename.h"
 
 #include <iostream>
 
@@ -44,12 +45,28 @@ bool FilenameMatcher::Init()
 
 void FilenameMatcher::MatchFile(const wxString & filepath)
 {
-    if (m_FilepathMatcher.Matches(filepath))
+    //only match file name, exclude dir path
+    wxFileName fn(filepath);
+
+    wxString filename = fn.GetFullName();
+
+    if (m_FilepathMatcher.Matches(filename))
     {
-        wxString dstPath(filepath);
+        wxString dstPath(filename);
 
         if (m_FilepathMatcher.Replace(&dstPath, m_DstRegex) == 1)
         {
+            wxFileName dstFn(fn);
+
+            std::cout << "dst dir:" << wxFileName::FileName(dstPath).GetPath().utf8_str()
+                      << ", dst file:" << wxFileName::FileName(dstPath).GetFullName().utf8_str()
+                      << std::endl;
+
+            dstFn.AppendDir(wxFileName::FileName(dstPath).GetPath());
+            dstFn.SetFullName(wxFileName::FileName(dstPath).GetFullName());
+
+            dstPath = dstFn.GetFullPath();
+
             filename_pair pair = {filepath, dstPath};
 
             m_FilepathMap.Add(pair);
@@ -58,6 +75,12 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
         }
     }
 }
+
+static
+const
+char escape_chars[] = {
+    '(', ')', '.'
+};
 
 bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
                                            wxString & dstRegex)
@@ -85,16 +108,17 @@ bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
             single_match_index.Add(match_index);
             srcRegex.append("(.)");
         }
-        else if (m_SrcPattern[i] == '(')
-        {
-            srcRegex.append("\\(");
-        }
-        else if (m_SrcPattern[i] == ')')
-        {
-            srcRegex.append("\\)");
-        }
         else
         {
+            for(int j = 0;j < sizeof(escape_chars) / sizeof(char); j++)
+            {
+                if (m_SrcPattern[i] == escape_chars[j])
+                {
+                    srcRegex.append("\\");
+                    break;
+                }
+            }
+
             srcRegex.append(m_SrcPattern[i]);
         }
     }
@@ -123,6 +147,8 @@ bool FilenameMatcher::GenRegexFromWildcard(wxString & srcRegex,
             dstRegex.append(m_DstPattern[i]);
         }
     }
+
+    std::cout << "src regex:" << srcRegex.utf8_str() << ", dst regex:" << dstRegex.utf8_str() << std::endl;
 
     return true;
 }

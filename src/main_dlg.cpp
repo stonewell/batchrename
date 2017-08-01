@@ -162,6 +162,16 @@ void MainDialog::UpdatePreview(const wxString & folder,
                                const wxString & srcPattern,
                                const wxString & dstPattern)
 {
+    if (!wxDirExists(folder))
+    {
+        wxMessageBox("Please choose a valid folder!",
+                     "Error",
+                     wxOK | wxICON_ERROR | wxCENTRE |wxICON_HAND,
+                     this);
+
+        return;
+    }
+
     wxWindowDisabler disableAll;
     wxBusyInfo wait(wxT("Please wait, scanning directory..."));
 
