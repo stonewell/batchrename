@@ -2,14 +2,17 @@
 #include "dir_scanner.h"
 #include "filename_matcher.h"
 #include "preview_listctrl.h"
+#include "version.h"
+
+#include "wx/aboutdlg.h"
+#include "wx/generic/aboutdlgg.h"
 
 #include <wx/busyinfo.h>
 
 #include <iostream>
 
 MainDialog::MainDialog(const wxString & title)
-    : wxDialog(NULL, -1, title, wxDefaultPosition, wxSize(800, 600))
-    , m_LogWin(new wxLogWindow(NULL, "Messages", false, false))
+    : wxFrame(NULL, -1, title, wxDefaultPosition, wxSize(800, 600))
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
@@ -101,24 +104,42 @@ MainDialog::MainDialog(const wxString & title)
     vbox->Add(sz3, flags);
     vbox->Add(hbox, wxSizerFlags(1).Center());
 
+    m_LogWin = (new wxLogWindow(this, "Messages", false, false));
     SetSizer(vbox);
+
+    // create a menu bar
+    wxMenu *fileMenu = new wxMenu;
+
+    // the "About" item should be in the help menu
+    wxMenu *helpMenu = new wxMenu;
+    helpMenu->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
+
+    fileMenu->Append(ID_MENU_LOGW, "&Log window", "Open the log window");
+
+    // now append the freshly created menu to the menu bar...
+    wxMenuBar *menuBar = new wxMenuBar();
+    menuBar->Append(fileMenu, "&File");
+    menuBar->Append(helpMenu, "&Help");
+
+    // ... and attach this menu bar to the frame
+    SetMenuBar(menuBar);
 
     //Connect to Events
     // Connect(wxEVT_TEXT, wxCommandEventHandler(MainDialog::OnUpdatePreview));
     // Connect(wxEVT_CHECKBOX, wxCommandEventHandler(MainDialog::OnUpdatePreview));
     // Connect(wxEVT_RADIOBUTTON, wxCommandEventHandler(MainDialog::OnUpdatePreview));
-
     Connect(wxEVT_BUTTON, wxCommandEventHandler(MainDialog::OnButtonClick));
     Connect(wxEVT_MOVE, wxMoveEventHandler(MainDialog::OnWindowMove));
+    Connect(wxEVT_MENU, wxCommandEventHandler(MainDialog::OnMenuCommand));
+
     Centre();
 
     //Log Window
     wxLog::SetActiveTarget(m_LogWin);
     wxLog::SetLogLevel(wxLOG_Info);
 
-    ShowModal();
+    Show();
 
-    Destroy();
 }
 
 void MainDialog::OnUpdatePreview(wxCommandEvent & event)
@@ -211,4 +232,27 @@ void MainDialog::UpdateLogWindow()
         m_LogWin->Show();
 
     m_LogWin->GetFrame()->SetFocus();
+}
+
+void MainDialog::OnMenuCommand(wxCommandEvent& event)
+{
+    if (event.GetId() == ID_MENU_LOGW)
+    {
+        this->UpdateLogWindow();
+    }
+    else if (event.GetId() == wxID_ABOUT)
+    {
+        wxAboutDialogInfo info;
+        info.SetName(_T("Batch File Rename"));
+        info.SetVersion(VERSION_NUM_DOT_STRING_T);
+        info.SetDescription(_T("A tool rename file in batch using wildcards or regex"));
+        info.SetCopyright(_T("(C) 2017 Jingnan Si"));
+        info.AddDeveloper(_T("Jingnan Si"));
+
+        wxAboutBox(info);
+    }
+    else if (event.GetId() == wxID_EXIT)
+    {
+        Close(true);
+    }
 }

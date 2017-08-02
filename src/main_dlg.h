@@ -7,7 +7,7 @@
 
 class PreviewListCtrl;
 
-class MainDialog : public wxDialog
+class MainDialog : public wxFrame
 {
 public:
     MainDialog(const wxString& title);
@@ -17,6 +17,7 @@ private:
     {
         ID_BTN_BROWSE = wxID_HIGHEST + 1,
         ID_BTN_PREVIEW,
+        ID_MENU_LOGW,
     };
 
     wxTextCtrl * m_tcFolder;
@@ -37,6 +38,7 @@ private:
     void OnUpdatePreview(wxCommandEvent & event);
     void OnButtonClick(wxCommandEvent & event);
     void OnWindowMove(wxMoveEvent & event);
+    void OnMenuCommand(wxCommandEvent& event);
 
     void UpdatePreview(const wxString & folder,
                        bool includeSubDir,
