@@ -6,13 +6,14 @@
 
 #include "wx/aboutdlg.h"
 #include "wx/generic/aboutdlgg.h"
+#include "wx/filename.h"
 
 #include <wx/busyinfo.h>
 
 #include <iostream>
 
 MainDialog::MainDialog(const wxString & title)
-    : wxFrame(NULL, -1, title, wxDefaultPosition, wxSize(800, 600))
+    : wxFrame(NULL, -1, title, wxDefaultPosition, wxSize(800, 700))
 {
     wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
@@ -176,9 +177,21 @@ void MainDialog::OnButtonClick(wxCommandEvent & event)
                       m_tcSourcePattern->GetValue(),
                       m_tcTargetPattern->GetValue());
     }
+    else if (btn->GetId() == wxID_REPLACE)
+    {
+        //Update preview first
+        if (!UpdatePreview(m_tcFolder->GetValue(),
+                           m_cbIncludeSubDir->GetValue(),
+                           m_rbWildcards->GetValue(),
+                           m_tcSourcePattern->GetValue(),
+                           m_tcTargetPattern->GetValue()))
+            return;
+
+        DoRename();
+    }
 }
 
-void MainDialog::UpdatePreview(const wxString & folder,
+bool MainDialog::UpdatePreview(const wxString & folder,
                                bool includeSubDir,
                                bool useWildcard,
                                const wxString & srcPattern,
@@ -191,7 +204,7 @@ void MainDialog::UpdatePreview(const wxString & folder,
                      wxOK | wxICON_ERROR | wxCENTRE |wxICON_HAND,
                      this);
 
-        return;
+        return false;
     }
 
     wxWindowDisabler disableAll;
@@ -205,11 +218,13 @@ void MainDialog::UpdatePreview(const wxString & folder,
                             m_FilepathArray);
 
     if (!matcher.Init())
-        return;
+        return false;
 
     scan_dir(folder, matcher, includeSubDir);
 
     m_lcPreview->SetFilenameArray(folder, &m_FilepathArray);
+
+    return true;
 }
 
 void MainDialog::OnWindowMove(wxMoveEvent & event)
@@ -254,5 +269,28 @@ void MainDialog::OnMenuCommand(wxCommandEvent& event)
     else if (event.GetId() == wxID_EXIT)
     {
         Close(true);
+    }
+}
+
+void MainDialog::DoRename()
+{
+    wxWindowDisabler disableAll;
+    wxBusyInfo wait(wxT("Please wait, renaming..."));
+
+    for(int i=0;i < m_FilepathArray.GetCount();i++)
+    {
+        filename_pair & pair = m_FilepathArray.Item(i);
+
+        if (!wxRenameFile(pair.src_path, pair.dst_path, false))
+        {
+            wxFileName src(pair.src_path);
+            wxFileName dst(pair.dst_path);
+
+            src.MakeRelativeTo(m_tcFolder->GetValue());
+            dst.MakeRelativeTo(m_tcFolder->GetValue());
+            wxLogError(wxT("Rename failed from %s to %s"),
+                       src.GetFullPath(),
+                       dst.GetFullPath());
+        }
     }
 }

@@ -40,11 +40,12 @@ private:
     void OnWindowMove(wxMoveEvent & event);
     void OnMenuCommand(wxCommandEvent& event);
 
-    void UpdatePreview(const wxString & folder,
+    bool UpdatePreview(const wxString & folder,
                        bool includeSubDir,
                        bool useWildcard,
                        const wxString & srcPattern,
                        const wxString & targeParttern);
 
     void UpdateLogWindow();
+    void DoRename();
 };

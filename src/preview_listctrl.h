@@ -23,7 +23,7 @@ private:
     FilenamePairArray * m_pFilepathArray;
     wxString m_SrcFolder;
 
-    virtual wxString OnGetItemText(long item, long column) const wxOVERRIDE;
+    virtual wxString OnGetItemText(long item, long column) const;
 
     wxDECLARE_NO_COPY_CLASS(PreviewListCtrl);
     wxDECLARE_EVENT_TABLE();

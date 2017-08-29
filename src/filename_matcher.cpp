@@ -81,7 +81,8 @@ void FilenameMatcher::MatchFile(const wxString & filepath)
     else
     {
         fn.MakeRelativeTo(m_BaseFolder);
-        wxLogMessage(wxT("File:%s 's name is not matching source pattern."), fn.GetFullPath().utf8_str());
+        wxString fullpath = fn.GetFullPath();
+        wxLogMessage(wxT("File:%s 's name is not matching source pattern."), fullpath);
     }
 }
 
